@@ -1,6 +1,6 @@
 from couchdb import Server
 from couchdb.design import ViewDefinition
-from couchdb.mapping import Document, TextField, BooleanField, IntegerField, DateField
+from couchdb.mapping import Document, TextField, BooleanField, IntegerField, DateField, DateTimeField
 from couchdb.http import HTTPError
 from datetime import date, datetime, time
 import inspect
@@ -21,7 +21,7 @@ class Staff(Document):
     cellphone = TextField()
     unit = TextField()
     department = TextField()
-    date_of_birth = TextField()
+    date_of_birth = DateField()
     sex = TextField()
     title = TextField()
     note = TextField()
@@ -106,7 +106,7 @@ class Staff(Document):
         staff['cellphone'] = self.cellphone
         staff['unit'] = self.unit
         staff['department'] = self.department
-        staff['date_of_birth'] = self.date_of_birth
+        staff['date_of_birth'] = self.date_of_birth.strftime("%d-%m-%Y")
         staff['sex'] = self.sex
         staff['title'] = self.title
         staff['note'] = self.note
@@ -118,6 +118,9 @@ class Staff(Document):
             f_info = func_info()
             print('HTTPError: ', f_info[0], f_info[1], f_info[2], err)
             return False
+        except TypeError as err:
+            f_info = func_info()
+            print('TypeError: ', f_info[0], f_info[1], f_info[2], err)
         else:
             return True
 

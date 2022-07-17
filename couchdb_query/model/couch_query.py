@@ -5,6 +5,7 @@ from couchdb.http import HTTPError
 from datetime import date, datetime, time
 import sys
 import inspect
+from json import dumps
 # adding Folder_2 to the system path
 # sys.path.insert(0, '/home/vietph/workspace/couchdb_crud/couchdb_query/doc')
 sys.path.insert(0, '/home/tainp/workspace/couchdb_crud/couchdb_query/doc')
@@ -20,35 +21,20 @@ def func_info():
   return file_name, func_name, line
 
 class CouchQuery:
-    def __init__(self):
-        pass
-        
-    def insert(self, dict_data = None, **kwargs):
-        # print('couch insert')
-        # if(dict_data != None):
-        #     db.save(dict_data)
-        # else:
-        #     db.save(kwargs)
-        pass
-    def read(self):
-        pass
-    def update(self):
-        pass
-    def delete(self):
-        pass
-    
-class StaffModel(CouchQuery):
     def __init__(self, db):
-        super().__init__()
         self.db = db
-
-    @classmethod
+        
+    def createView(self, design_name, view_name, map_func, reduce_func=None):
+        view = ViewDefinition(design_name, view_name, map_fun=map_func, reduce_fun=reduce_func)
+        res = view.sync(self.db) 
+        return view.get_doc(self.db)
+    
     def insert_one(self, dict_data, **kwargs):
         try:
             if(dict_data != None):
-                return self.db.save(dict_data)
+                return db.save(dict_data)
             else:
-                return self.db.save(kwargs)
+                return db.save(kwargs)
         except HTTPError as err:
             f_info = func_info()
             print('HTTPError: ', f_info[0], f_info[1], f_info[2], err)
@@ -69,12 +55,17 @@ class StaffModel(CouchQuery):
             return False
         return True
 
-    def update_one(self, staff):
-        staff.save(self.db)
+    def update_one(self, doc_object):
+        doc_object.save(self.db)
 
-    def update_many(self, staff_list):
-        for staff in staff_list:
-            staff.save(self.db)
+    def update_many(self, doc_object_list):
+        for doc_object in doc_object_list:
+            doc_object.save(self.db)
+    
+class StaffModel(CouchQuery):
+    def __init__(self, db):
+        super().__init__(db)    
+
         
 import random 
 if __name__ == '__main__': 
@@ -85,21 +76,33 @@ if __name__ == '__main__':
     except HTTPError as err:
         print(err)
         db = couch['staff']
+
     
-    data = {'staff_code': 277457, 'full_name': 'NPTtttttt', 'mail_code': 'tainp', 
+
+    data = {'staff_code': 277457, 'full_name': 'NPTttaaiiii', 'mail_code': 'tainp', 
     'cellphone': '098881888', 'unit': 'TQDT', 'department': 'DK', 
-    'date_of_birth':'02-10-1998', 'sex': 'male', 'title': 'system programing', 
+    'sex': 'male', 'title': 'system programing', 
     'note': 'pro', 'should_roll_up': True, 'active': True}
+    # staff_model = StaffModel(db)
+    # doc_view = staff_model.createView('docs', 'by_name', '''function(doc) {
+    #         emit(doc.full_name, doc._id);
+    #     }''')
+    # print(doc_view)
+    # for row in db.view('docs/by_name', wrapper=None, include_docs=True, key='NPT'):
+    #     print(row.key, row.value, row.doc)
+    # data = staff_model.insert_one(data)
+    # print(data[0], data[1])
     staff1 = Staff.create(data)
     # staff.full_name = 'TAIII'
-    # staff.save(db)
-    staff_model = StaffModel(db)
-    staff = Staff(id='293e39d00fe0a9f1d5385a6488728c87')
-    staff.load(db)
-    staff.full_name = "TAIAJAJgggggD"
-    staff_model.update_many([staff1, staff])
+    staff1.date_of_birth = date(1998, 10, 2)
+    staff1.save(db)
+    # staff_model = StaffModel(db)
+    # staff = Staff(id='293e39d00fe0a9f1d5385a6488728c87')
+    # staff.load(db)
+    # staff.full_name = "TAIAJAJgggggDDDDD"
+    # staff_model.update_many([staff1, staff])
     # staff = Staff.load_by_id(db, id='293e39d00fe0a9f1d5385a6488728c87')
-    print(staff.full_name)
+    # print(staff.full_name)
     # staff.full_name = "NPTaii"
     # staff.save()
     # staff = StaffModel(db)
