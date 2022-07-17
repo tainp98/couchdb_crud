@@ -1,9 +1,20 @@
 from couchdb import Server
 from couchdb.design import ViewDefinition
 from couchdb.mapping import Document, TextField, BooleanField, IntegerField, DateField
+from couchdb.http import HTTPError
 from datetime import date, datetime, time
+import inspect
+def func_info():
+  callerframerecord = inspect.stack()[1]    # 0 represents this line
+                                            # 1 represents line at caller
+  frame = callerframerecord[0]
+  info = inspect.getframeinfo(frame)
+  file_name = 'File "' + info.filename + '"'
+  func_name = 'in ' + info.function
+  line = 'line ' + str(info.lineno)
+  return file_name, func_name, line
 class Staff(Document):
-    id = IntegerField()
+    _id = TextField()
     staff_code = TextField()
     full_name = TextField()
     mail_code = TextField()
@@ -19,7 +30,7 @@ class Staff(Document):
     def __init__(self, **kwargs):
         super().__init__()
         if(kwargs.get('id') != None):
-            self.id = kwargs['id']
+            self._id = kwargs['id']
         if(kwargs.get('staff_code') != None):
             self.staff_code = kwargs['staff_code']
         if(kwargs.get('full_name') != None):
@@ -78,5 +89,64 @@ class Staff(Document):
         return cls(id=id, staff_code=staff_code, full_name=full_name, mail_code=mail_code,
                    cellphone=cellphone, unit=unit, department=department, date_of_birth = date_of_birth,
                    sex=sex, title=title, note=note, should_roll_up=should_roll_up, active=active)
+
+    def save(self, db):
+        staff = {}
+        if(self._id != None):
+            try:
+                staff = db[self._id]
+            except HTTPError as err:
+                f_info = func_info()
+                print('HTTPError: ', f_info[0], f_info[1], f_info[2], err)
+
+        # save with new _id
+        staff['staff_code'] = self.staff_code
+        staff['full_name'] = self.full_name
+        staff['mail_code'] = self.mail_code
+        staff['cellphone'] = self.cellphone
+        staff['unit'] = self.unit
+        staff['department'] = self.department
+        staff['date_of_birth'] = self.date_of_birth
+        staff['sex'] = self.sex
+        staff['title'] = self.title
+        staff['note'] = self.note
+        staff['should_roll_up'] = self.should_roll_up
+        staff['active'] = self.active
+        try:
+            db.update([staff])
+        except HTTPError as err:
+            f_info = func_info()
+            print('HTTPError: ', f_info[0], f_info[1], f_info[2], err)
+            return False
+        else:
+            return True
+
+    def load(self, db):
+        try:
+            staff = db[self._id]
+            self.staff_code = staff['staff_code']
+            self.full_name = staff['full_name']
+            self.mail_code = staff['mail_code']
+            self.cellphone = staff['cellphone']
+            self.unit = staff['unit']
+            self.department = staff['department']
+            self.date_of_birth = staff['date_of_birth']
+            self.sex = staff['sex']
+            self.title = staff['title']
+            self.note = staff['note']
+            self.should_roll_up = staff['should_roll_up']
+            self.active = staff['active']
+        except HTTPError as err:
+            f_info = func_info()
+            print('HTTPError: ', f_info[0], f_info[1], f_info[2], err)
+    
+    @classmethod
+    def load_by_id(cls, db, id):
+        try:
+            staff = db[id]
+            return Staff.create(staff)
+        except HTTPError as err:
+            f_info = func_info()
+            print('HTTPError: ', f_info[0], f_info[1], f_info[2], err)
 # staff = Staff.create({'staff_code': 277457, 'full_name': 'NPT', 'mail_code': 'tainp', 'cellphone': '098881888', 'unit': 'TQDT', 'department': 'DK', 'date_of_birth':'02-10-1998', 'sex': 'male', 'title': 'system programing', 'note': 'pro', 'should_roll_up': True, 'active': True})
 # print(staff.date_of_birth)
