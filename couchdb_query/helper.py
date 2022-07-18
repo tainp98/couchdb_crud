@@ -16,3 +16,33 @@ def json_serial(obj):
     if isinstance(obj, (datetime, date)):
         return obj.isoformat()
     raise TypeError ("Type %s not serializable" % type(obj))
+
+def date_to_str(date_obj):
+    try:
+      return datetime.strftime(date_obj, '%Y-%m-%d')
+    except ValueError as err:
+      f_info = func_info()
+      print('ValueError: ', f_info[0], f_info[1], f_info[2], err)
+
+def datetime_to_str(date_obj):
+    try:
+      return datetime.strftime(date_obj, '%Y-%m-%d %H:%M:%S')
+    except ValueError as err:
+      f_info = func_info()
+      print('ValueError: ', f_info[0], f_info[1], f_info[2], err)
+
+def str_to_date(str_obj):
+    """datetime serializer for json code"""
+    try:
+      return datetime.strptime(str_obj, '%Y-%m-%d')
+    except ValueError as err:
+      f_info = func_info()
+      print('ValueError: ', f_info[0], f_info[1], f_info[2], err)
+
+def str_to_datetime(str_obj):
+    """datetime serializer for json code"""
+    try:
+      return datetime.strptime(str_obj, '%Y-%m-%d %H:%M:%S')
+    except ValueError as err:
+      f_info = func_info()
+      print('ValueError: ', f_info[0], f_info[1], f_info[2], err)

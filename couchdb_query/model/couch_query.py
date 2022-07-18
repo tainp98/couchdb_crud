@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath(os.path.join(dir, '../doc')))
 
 from staff import Staff
 from helper import func_info
-from helper import json_serial
+from helper import json_serial, date_to_str, datetime_to_str, str_to_date, str_to_datetime
 
 class CouchQuery:
     def __init__(self, db):
@@ -245,11 +245,8 @@ if __name__ == '__main__':
         db = couch['staff']
 
     
-    data_demo = {'staff_code': 277457, 'full_name': 'NPTttaii', 'mail_code': 'tainp', 
-    'cellphone': ['097881888', '098881888'], 'unit': 'TQDT', 'department': 'DK',
-    'date_of_birth': json_serial(date(1998, 10, 2)), 
-    'sex': 'male', 'title': 'system programing', 
-    'note': 'pro', 'should_roll_up': True, 'active': True}
+    data_demo = {'staff_code': 277457, 'full_name': 'NPT', 'mail_code': 'tainp', 'cellphone': '098881888', 'unit': 'TQDT', 'department': 'DK', 
+                        'date_of_birth':date_to_str(date(1998, 10, 2)), 'sex': 'male', 'title': 'system programing', 'note': 'pro', 'should_roll_up': True, 'active': True}
     staff_model = StaffModel(db)
     # res = staff_model.update_doc(data_demo)
     # print(res)
@@ -265,10 +262,25 @@ if __name__ == '__main__':
     selector = {'staff_code': {'$gt': 100000, '$lt':250000}}
     query = {'selector':selector, 'limit':3000}
     # staff_model.delete(data_demo)
-    data = staff_model.mango_query(selector={'staff_code':277457})
+    data = staff_model.mango_query(selector={'staff_code':277457}, use_index='_design/3f720acbfe19f7f1ef5a733a0442dba1730328a2')
     df = pd.DataFrame(data)
     for index, row in df.iterrows():
-        print(row["cellphone"])
+        print(row["_id"])
+
+    staff = Staff.load_by_id(db, id='8ab8374aa7792def6ed5b226d8008806')
+    print(staff.date_of_birth, type(staff.date_of_birth))
+    print(staff.cellphone, staff._id, staff.full_name, staff.staff_code)
+    # staff.full_name = "NPTaaaaaiiiiii"
+    # staff.save(db)
+    print(staff_model.update_doc(staff._to_json()))
+    # staff = Staff(id='8ab8374aa7792def6ed5b226d8008806')
+    # staff.load(db)
+    # print(staff.cellphone, staff._id, staff.full_name, staff.staff_code)
+    # staff.save(db)
+    # staff = Staff({'staff_code': 277457, 'full_name': 'NPT', 'mail_code': 'tainp', 'cellphone': '098881888', 'unit': 'TQDT', 'department': 'DK', 
+    #                     'date_of_birth':date(1998, 10, 2), 'sex': 'male', 'title': 'system programing', 'note': 'pro', 'should_roll_up': True, 'active': True})
+    # print(staff.date_of_birth, type(staff.date_of_birth))
+    # print(staff.save(db))
     # staff_model.purge_docs(data)
     # for doc in data:
     #     staff_model.delete(doc)
