@@ -3,8 +3,9 @@ from couchdb.design import ViewDefinition
 from couchdb.mapping import Document, TextField, BooleanField, IntegerField, DateField, DateTimeField
 from couchdb.http import HTTPError
 from datetime import date, datetime, time
-import sys
-sys.path.insert(0, '/home/vietph/workspace/couchdb_crud/couchdb_query')
+import sys, os
+dir = os.path.dirname(__file__)
+sys.path.insert(0, os.path.abspath(os.path.join(dir, '..')))
 from helper import func_info
 from helper import json_serial
 class Staff(Document):
@@ -89,7 +90,7 @@ class Staff(Document):
         staff['cellphone'] = self.cellphone
         staff['unit'] = self.unit
         staff['department'] = self.department
-        staff['date_of_birth'] = self.date_of_birth.strftime("%d-%m-%Y")
+        staff['date_of_birth'] = json_serial(self.date_of_birth)
         staff['sex'] = self.sex
         staff['title'] = self.title
         staff['note'] = self.note

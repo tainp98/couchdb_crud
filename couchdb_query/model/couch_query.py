@@ -5,13 +5,13 @@ from couchdb.design import ViewDefinition
 from couchdb.mapping import Document, TextField, BooleanField, IntegerField, DateField
 from couchdb.http import HTTPError, ResourceNotFound
 from datetime import date, datetime, time
-import sys
+import sys, os
 from json import dumps
 import pandas as pd
-# adding Folder_2 to the system path
-# sys.path.insert(0, '/home/vietph/workspace/couchdb_crud/couchdb_query/doc')
-sys.path.insert(0, '/home/vietph/workspace/couchdb_crud/couchdb_query')
-sys.path.insert(0, '/home/vietph/workspace/couchdb_crud/couchdb_query/doc')
+dir = os.path.dirname(__file__)
+sys.path.insert(0, os.path.abspath(os.path.join(dir, '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(dir, '../doc')))
+
 from staff import Staff
 from helper import func_info
 from helper import json_serial
@@ -236,8 +236,8 @@ class StaffModel(CouchQuery):
         
 import random 
 if __name__ == '__main__': 
-    couch = Server("http://admin:admin@172.21.100.174:5984")
-    # couch = Server("http://admin:admin@localhost:5984")
+    # couch = Server("http://admin:admin@172.21.100.174:5984")
+    couch = Server("http://admin:admin@localhost:5984")
     try:
         db = couch.create('staff')
     except HTTPError as err:
@@ -268,7 +268,7 @@ if __name__ == '__main__':
     data = staff_model.mango_query(selector={'staff_code':277457})
     df = pd.DataFrame(data)
     for index, row in df.iterrows():
-        print(row["cellphone"][1])
+        print(row["cellphone"])
     # staff_model.purge_docs(data)
     # for doc in data:
     #     staff_model.delete(doc)
