@@ -3,16 +3,10 @@ from couchdb.design import ViewDefinition
 from couchdb.mapping import Document, TextField, BooleanField, IntegerField, DateField, DateTimeField
 from couchdb.http import HTTPError
 from datetime import date, datetime, time
-import inspect
-def func_info():
-  callerframerecord = inspect.stack()[1]    # 0 represents this line
-                                            # 1 represents line at caller
-  frame = callerframerecord[0]
-  info = inspect.getframeinfo(frame)
-  file_name = 'File "' + info.filename + '"'
-  func_name = 'in ' + info.function
-  line = 'line ' + str(info.lineno)
-  return file_name, func_name, line
+import sys
+sys.path.insert(0, '/home/vietph/workspace/couchdb_crud/couchdb_query')
+from helper import func_info
+from helper import json_serial
 class Staff(Document):
     _id = TextField()
     staff_code = TextField()
@@ -27,34 +21,24 @@ class Staff(Document):
     note = TextField()
     should_roll_up = BooleanField()
     active = BooleanField()
-    def __init__(self, **kwargs):
+    def __init__(self, id=None, staff_code=None, full_name=None, mail_code=None,
+                 cellphone=None, unit=None, department=None, date_of_birth=None,
+                 sex=None, title=None, note=None, should_roll_up=None, active=None):
         super().__init__()
-        if(kwargs.get('id') != None):
-            self._id = kwargs['id']
-        if(kwargs.get('staff_code') != None):
-            self.staff_code = kwargs['staff_code']
-        if(kwargs.get('full_name') != None):
-            self.full_name = kwargs['full_name']
-        if(kwargs.get('mail_code') != None):
-            self.mail_code = kwargs['mail_code']
-        if(kwargs.get('cellphone') != None):
-            self.cellphone = kwargs['cellphone']
-        if(kwargs.get('unit') != None):
-            self.unit = kwargs['unit']
-        if(kwargs.get('department') != None):
-            self.department = kwargs['department']
-        if(kwargs.get('date_of_birth') != None):
-            self.date_of_birth = kwargs['date_of_birth']
-        if(kwargs.get('sex') != None):
-            self.sex = kwargs['sex']
-        if(kwargs.get('title') != None):
-            self.title = kwargs['title']
-        if(kwargs.get('note') != None):
-            self.note = kwargs['note']
-        if(kwargs.get('should_roll_up') != None):
-            self.should_roll_up = kwargs['should_roll_up']
-        if(kwargs.get('active') != None):
-            self.active = kwargs['active']
+        self._id = id
+        self.staff_code = staff_code
+        self.full_name = full_name
+        self.mail_code = mail_code
+        self.cellphone = cellphone
+        self.unit = unit
+        self.department = department
+        self.date_of_birth = date_of_birth
+        self.sex = sex
+        self.title = title
+        self.note = note
+        self.should_roll_up = should_roll_up
+        self.active = active
+    
     @classmethod
     def create(cls, dict_data):
         id, staff_code, full_name, mail_code = None, None, None, None
@@ -99,7 +83,6 @@ class Staff(Document):
                 f_info = func_info()
                 print('HTTPError: ', f_info[0], f_info[1], f_info[2], err)
 
-        # save with new _id
         staff['staff_code'] = self.staff_code
         staff['full_name'] = self.full_name
         staff['mail_code'] = self.mail_code

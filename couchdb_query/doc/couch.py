@@ -4,16 +4,15 @@ from couchdb import Server
 from couchdb.design import ViewDefinition
 from couchdb.mapping import Document, TextField, IntegerField
 couch = Server("http://admin:admin@172.21.100.174:5984")
-db = couch["db_test"]
+db = couch["staff"]
 # db['123445'] = dict(name='vcute', age=25)
 # db['34355'] = dict(name='hvcute', age=26)
-view = ViewDefinition('tests', 'all', '''function(doc) {
-            if('name' in doc)
-                emit(doc.name, doc.age);
-        }''')
+view = ViewDefinition('filter', 'count_documents', '''function(doc) {
+            emit(null, 1);
+        }''', reduce_fun='_count')
 res = view.sync(db) 
 design_doc = view.get_doc(db)
-
+print(design_doc)
 class Person(Document):
     name = TextField()
     age = IntegerField()
