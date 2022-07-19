@@ -1,8 +1,5 @@
-
-from httplib2 import Http
 from couchdb import Server
 from couchdb.design import ViewDefinition
-from couchdb.mapping import Document, TextField, BooleanField, IntegerField, DateField
 from couchdb.http import HTTPError, ResourceNotFound
 from datetime import date, datetime, time
 import sys, os
@@ -87,7 +84,7 @@ class CouchQuery:
         """ Update a list of documents """
         if(isinstance(docs, list) == False):
             f_info = func_info()
-            print('Error: ', f_info[0], f_info[1], f_info[2], ' wrong data type: doc is dict type instead of ', type(doc)) 
+            print('Error: ', f_info[0], f_info[1], f_info[2], ' wrong data type: docs is dict type instead of ', type(doc)) 
             return []
         try:
             return self.db.update(docs)
@@ -99,7 +96,29 @@ class CouchQuery:
             f_info = func_info()
             print('TypeError: ', f_info[0], f_info[1], f_info[2], err)
             return []
-            
+    
+    def doc_by_id(self, id):
+        try:
+            return self.db[id]     
+        except ResourceNotFound as err:
+            f_info = func_info()
+            print('ResourceNotFound: ', f_info[0], f_info[1], f_info[2], err)
+            return {}
+        
+    def docs_by_id(self, ids):
+        if(isinstance(ids, list) == False):
+            f_info = func_info()
+            print('Error: ', f_info[0], f_info[1], f_info[2], ' wrong data type: ids is dict type instead of ', type(ids)) 
+            return []
+        list_doc = []
+        for id in ids:
+            try:
+                list_doc.append(self.db[id])   
+            except ResourceNotFound as err:
+                f_info = func_info()
+                print('ResourceNotFound: id = ', id, f_info[0], f_info[1], f_info[2], err)
+        return list_doc
+      
     def mango_query(self, query=None, selector=None, fields=None, sort=None, limit=None, skip=None, execution_stats=None, use_index=None):
         """Search by mango query. Return list of documents
             Components of a mango query
@@ -228,16 +247,12 @@ class CouchQuery:
         except TypeError as err:
             f_info = func_info()
             print('TypeError: ', f_info[0], f_info[1], f_info[2], err)
-    
-class StaffModel(CouchQuery):
-    def __init__(self, db):
-        super().__init__(db)
 
-        
-import random 
+
 if __name__ == '__main__': 
-    # couch = Server("http://admin:admin@172.21.100.174:5984")
-    couch = Server("http://admin:admin@localhost:5984")
+    import random 
+    couch = Server("http://admin:admin@172.21.100.174:5984")
+    # couch = Server("http://admin:admin@localhost:5984")
     try:
         db = couch.create('staff')
     except HTTPError as err:
@@ -247,7 +262,7 @@ if __name__ == '__main__':
     
     data_demo = {'staff_code': 277457, 'full_name': 'NPT', 'mail_code': 'tainp', 'cellphone': '098881888', 'unit': 'TQDT', 'department': 'DK', 
                         'date_of_birth':date_to_str(date(1998, 10, 2)), 'sex': 'male', 'title': 'system programing', 'note': 'pro', 'should_roll_up': True, 'active': True}
-    staff_model = StaffModel(db)
+    staff_model = CouchQuery(db)
     # res = staff_model.update_doc(data_demo)
     # print(res)
     doc_view = staff_model.create_view('filter', 'by_staff_code', '''function(doc) {
@@ -266,13 +281,14 @@ if __name__ == '__main__':
     df = pd.DataFrame(data)
     for index, row in df.iterrows():
         print(row["_id"])
-
-    staff = Staff.load_by_id(db, id='8ab8374aa7792def6ed5b226d8008806')
-    print(staff.date_of_birth, type(staff.date_of_birth))
-    print(staff.cellphone, staff._id, staff.full_name, staff.staff_code)
+    doc = staff_model.doc_by_id(id='8f16853e2aa2f548148b120e73be33b')
+    # print(doc['_id'], doc['full_name'], doc['mail_code'])
+    # staff = Staff.load_by_id(db, id='8ab8374aa7792def6ed5b226d8008806')
+    # print(staff.date_of_birth, type(staff.date_of_birth))
+    # print(staff.cellphone, staff._id, staff.full_name, staff.staff_code)
     # staff.full_name = "NPTaaaaaiiiiii"
     # staff.save(db)
-    print(staff_model.update_doc(staff._to_json()))
+    # print(staff_model.update_doc(staff._to_json()))
     # staff = Staff(id='8ab8374aa7792def6ed5b226d8008806')
     # staff.load(db)
     # print(staff.cellphone, staff._id, staff.full_name, staff.staff_code)

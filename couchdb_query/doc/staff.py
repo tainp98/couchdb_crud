@@ -1,13 +1,11 @@
-from couchdb import Server
-from couchdb.design import ViewDefinition
-from couchdb.mapping import Document, TextField, BooleanField, IntegerField, DateField, DateTimeField
+from couchdb.mapping import Document, TextField, BooleanField, DateField
 from couchdb.http import HTTPError
 from datetime import date, datetime, time
 import sys, os
 dir = os.path.dirname(__file__)
 sys.path.insert(0, os.path.abspath(os.path.join(dir, '..')))
 from helper import func_info
-from helper import json_serial, date_to_str, datetime_to_str, str_to_date, str_to_datetime
+from helper import date_to_str, str_to_date
 class Staff(Document):
     _id = TextField()
     staff_code = TextField()
@@ -46,8 +44,9 @@ class Staff(Document):
             self.active = dict_data.get('active')
         else:
             if(date_of_birth != None):
-                f_info = func_info()
-                raise Exception(f_info[0]+' '+f_info[1]+' '+f_info[2]+" Error date_of_birth data type")
+                if(isinstance(date_of_birth, date) == False):
+                    f_info = func_info()
+                    raise Exception(f_info[0]+' '+f_info[1]+' '+f_info[2]+" Error date_of_birth data type")
             self._id = _id
             self.staff_code = staff_code
             self.full_name = full_name
@@ -70,6 +69,7 @@ class Staff(Document):
             except HTTPError as err:
                 f_info = func_info()
                 print('HTTPError: ', f_info[0], f_info[1], f_info[2], err)
+                staff['_id'] = self._id
 
         staff['staff_code'] = self.staff_code
         staff['full_name'] = self.full_name
@@ -124,7 +124,7 @@ class Staff(Document):
             f_info = func_info()
             print('HTTPError: ', f_info[0], f_info[1], f_info[2], err)
 
-    def _to_json(self):
+    def _to_dict(self):
         json_obj = {}
         if(self._id != None):
             json_obj['_id'] = self._id
@@ -142,6 +142,7 @@ class Staff(Document):
         json_obj['should_roll_up'] = self.should_roll_up
         json_obj['active'] = self.active
         return json_obj
+
 if __name__ == '__main__':
     staff = Staff({'staff_code': 277457, 'full_name': 'NPT', 'mail_code': 'tainp', 'cellphone': '098881888', 'unit': 'TQDT', 'department': 'DK', 
                         'date_of_birth':date(1998, 10, 2), 'sex': 'male', 'title': 'system programing', 'note': 'pro', 'should_roll_up': True, 'active': True})

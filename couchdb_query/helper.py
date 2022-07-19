@@ -18,6 +18,8 @@ def json_serial(obj):
     raise TypeError ("Type %s not serializable" % type(obj))
 
 def date_to_str(date_obj):
+    if(date_obj == None or (isinstance(date_obj, date) == False)):
+      return None
     try:
       return datetime.strftime(date_obj, '%Y-%m-%d')
     except ValueError as err:
@@ -25,6 +27,8 @@ def date_to_str(date_obj):
       print('ValueError: ', f_info[0], f_info[1], f_info[2], err)
 
 def datetime_to_str(date_obj):
+    if(date_obj == None or (isinstance(date_obj, datetime) == False)):
+      return None
     try:
       return datetime.strftime(date_obj, '%Y-%m-%d %H:%M:%S')
     except ValueError as err:
