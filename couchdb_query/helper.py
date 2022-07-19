@@ -30,7 +30,7 @@ def datetime_to_str(date_obj):
     if(date_obj == None or (isinstance(date_obj, datetime) == False)):
       return None
     try:
-      return datetime.strftime(date_obj, '%Y-%m-%d %H:%M:%S')
+      return datetime.strftime(date_obj, '%Y-%m-%d %H:%M:%S.%f')
     except ValueError as err:
       f_info = func_info()
       print('ValueError: ', f_info[0], f_info[1], f_info[2], err)
@@ -46,7 +46,7 @@ def str_to_date(str_obj):
 def str_to_datetime(str_obj):
     """datetime serializer for json code"""
     try:
-      return datetime.strptime(str_obj, '%Y-%m-%d %H:%M:%S')
+      return datetime.strptime(str_obj, '%Y-%m-%d %H:%M:%S.%f')
     except ValueError as err:
       f_info = func_info()
       print('ValueError: ', f_info[0], f_info[1], f_info[2], err)
