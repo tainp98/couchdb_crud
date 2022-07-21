@@ -65,46 +65,50 @@ if __name__ == '__main__':
     print(count_doc)
     end_time = (time.time() - start_time)*1000.0
     print("query_count_doc time = %s milli" % (end_time)) 
-    
-    staff_doc = staff_model.doc_by_id('8f16853e2aa2f548148b120e73de157e')
-    print(staff_doc)
+
+    all_staffid_reduce = staff_model.view_query('staff_design', 'all_staffid', group_level=1)
+    all_staffid = []
+    for staffid in all_staffid_reduce:
+        all_staffid.append(staffid['value'])
     start_time = time.time()
-    detect_by_staffid = detection_model.view_query('detection_design', 'by_staffid', include_docs=False, key='8f16853e2aa2f548148b120e73de157e') #, key='8f16853e2aa2f548148b120e73dc20a9'
-    # print(detect_by_staffid)
-    # for doc in detect_by_staffid:
-    #     print(doc['value'])
-     
     
+    
+    """Detect The appearance of a staff in a period of time"""
     start_time = time.time()
-    minmax_time = detection_model.view_query('staff_id', 'minmaxtime', include_docs=False, group_level=1)
-    print(len(minmax_time))
+    minmax_byday = detection_model.view_query('detection_design', 'minmaxtime_byday', group_level=2, 
+                                              startkey=['8f16853e2aa2f548148b120e73dc20a9', '2022-07-20 00:01:00'],
+                                              endkey=['8f16853e2aa2f548148b120e73dc20a9', '2022-07-21 23:59:00'])
+    print(len(minmax_byday))
     end_time = (time.time() - start_time)*1000.0
     print("detect_by_staffid time = %s milli" % (end_time))
-    staff_list = []
-    for min_max in minmax_time:
-        staff_doc = staff_model.doc_by_id(min_max['key'])
-        staff_info_in_day = {}
-        staff_info_in_day['staff_id'] = staff_doc['_id']
-        staff_info_in_day['staff_code'] = staff_doc['staff_code']
-        staff_info_in_day['full_name'] = staff_doc['full_name']
-        staff_info_in_day['department'] = staff_doc['department']
-        staff_info_in_day['checkin_time'] = min_max['value'][0]
-        staff_info_in_day['checkout_time'] = min_max['value'][1]
-        # print(staff_info_in_day)
-        staff_list.append(staff_info_in_day)
-    
-    df = pd.DataFrame(staff_list)
+    person_trace = []
+    for data in minmax_byday:
+        staff = staff_model.doc_by_id(data['key'][0])
+        person_trace.append({'staff_code':staff['staff_code'], 'full_name':staff['full_name'],
+                             'mail_code':staff['mail_code'], 'cellphone':staff['cellphone'],
+                             'unit':staff['unit'], 'department':staff['department'],
+                             'date_of_birth':staff['date_of_birth'], 'appearance':data['value'][0]})
+    df = pd.DataFrame(person_trace)
     print(df)
-    df.to_csv('report_'+datetime.now().strftime('%Y-%m-%d %H:%M:%S')+'.csv', index=False)
+    df.to_csv('person_ductoan_'+datetime.now().strftime('%Y-%m-%d %H:%M:%S')+'.csv', index=False)
     
+    """Report checkin time and checkout time of all staff in a day"""
     
-    
-    # print(detection1.feature, detection2.feature)
-    # print(detection1.save(db))
-    # print(detection2.save(db))
-    
-    # data = staff_model.view_query('filter', 'by_staff_code', include_docs=True, key='12')
-    # data = detection_model.detections_by_id(['8f16853e2aa2f548148b120e73bedf3d', '8f16853e2aa2f548148b120e73bee75f'])
-    # print(len(data))
-    # for detection in data:
-    #     print(detection.feature)
+    report_list = []
+    start_time = time.time()
+    for staff_id in all_staffid:
+        minmax_byday = detection_model.view_query('detection_design', 'minmaxtime_byday', group_level=1, 
+                                                  startkey=[staff_id, datetime.now().strftime('%Y-%m-%d')+' 00:01:00'],
+                                                  endkey=[staff_id, datetime.now().strftime('%Y-%m-%d')+' 23:59:00'])
+        if(len(minmax_byday) == 0): continue
+        staff = staff_model.doc_by_id(staff_id) 
+        report_list.append({'staff_code':staff['staff_code'], 'full_name':staff['full_name'],
+                             'mail_code':staff['mail_code'], 'cellphone':staff['cellphone'],
+                             'unit':staff['unit'], 'department':staff['department'],
+                             'date_of_birth':staff['date_of_birth'], 'checkin':minmax_byday[0]['value'][0],
+                             'checkout':minmax_byday[0]['value'][1]})
+    end_time = (time.time() - start_time)*1000.0
+    print("detect_by_staffid time = %s milli" % (end_time))
+    df = pd.DataFrame(report_list)
+    # print(df)
+    # df.to_csv('report_'+datetime.now().strftime('%Y-%m-%d %H:%M:%S')+'.csv', index=False)
